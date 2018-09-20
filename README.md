@@ -1,4 +1,5 @@
 # TStuff
 CNN Image Classification
 
-Github feature testing: commit changes
+Keras with TF backend
+5 convolutional, 3 fully-connected layers
