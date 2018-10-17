@@ -2,7 +2,7 @@
 # https://github.com/adventuresinML/adventures-in-ml-code/blob/master/keras_cnn.py, retrieved on 8/23/2018
 # https://stackoverflow.com/questions/48198031/keras-add-variables-to-progress-bar/48206009#48206009, retrieved on 8/25/2018
 # https://github.com/OmarAflak/Keras-Android-XOR/blob/master/keras/index.py, retrieved on 8/30/2018
-
+import os
 import math
 import numpy as np
 import tensorflow as tf
@@ -34,9 +34,10 @@ def get_data():
     # Default args from flow_from_directory:
     #   color_mode='rgb'
     #   shuffle=True
-    train_generator = train_datagen.flow_from_directory('dataset/train', target_size=(256, 256), batch_size=32, class_mode='categorical') ######### CHANGE TO BINARY
-    validation_generator = validation_datagen.flow_from_directory('dataset/validate', target_size=(256, 256), batch_size=32, class_mode='categorical')
-    test_generator = test_datagen.flow_from_directory('dataset/test', target_size=(256, 256), batch_size=1, class_mode=None, shuffle=False)
+    #   class_mode='categorical'
+    train_generator = train_datagen.flow_from_directory('./data/train', target_size=(256, 256), batch_size=32, class_mode='categorical') ######### CHANGE TO BINARY
+    validation_generator = validation_datagen.flow_from_directory('./data/validation', target_size=(256, 256), batch_size=32, class_mode='categorical')
+    test_generator = test_datagen.flow_from_directory('./data/test', target_size=(256, 256), batch_size=1, class_mode=None, shuffle=False)
 
     return train_generator, validation_generator, test_generator
 
@@ -118,7 +119,10 @@ def train_cnn(num_classes, epochs):
     lr_metric = get_lr_metric(sgd)
     hist_metric = model.compile(loss=losses.categorical_crossentropy, optimizer=sgd, metrics=['accuracy', lr_metric]) ######### CHANGE TO BINARY_CROSSENTROPY
 
-    callbacks = [CSVLogger('training_log/history.csv'), ModelCheckpoint('training_log/best_epoch.hdf5', 'val_acc', verbose=1, save_best_only=True),
+    if not os.path.isdir('./training_log'):
+        os.mkdir('./training_log')
+
+    callbacks = [CSVLogger('./training_log/history.csv'), ModelCheckpoint('./training_log/best_epoch.hdf5', 'val_acc', verbose=1, save_best_only=True),
                  ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=1, verbose=1, min_lr=0.00001)]
 
     print('Training initialized. Epoch: 0')
@@ -127,7 +131,7 @@ def train_cnn(num_classes, epochs):
     print('Training terminated. Epoch:', epochs)
 
     # Saving till last epoch performed
-    model.save('training_log/last_epoch.hdf5')
+    model.save('./training_log/last_epoch.hdf5')
 
     # Loop and conditional statement to give a choice whether to continue training or not
     while True:
@@ -144,8 +148,8 @@ def train_cnn(num_classes, epochs):
                                 callbacks=callbacks, initial_epoch=epochs)
             print('Training terminated. Epoch:', epochs+epoch_more)
 
-            if input('Save model (Y/N)?') == 'y':
-                model.save('training_log/last_epoch.hdf5')
+            if input('Save model (Y/N)?').lower() == 'y':
+                model.save('./training_log/last_epoch.hdf5')
                 print('Model saved./n')
             return model, test_generator, hist_metric
         elif train_more.lower() == 'n':
@@ -153,14 +157,19 @@ def train_cnn(num_classes, epochs):
         else:
             print('Invalid input./n')
 
+def get_activations():
+
 def export_model():
     # Exporting Keras model to a Tensorflow model
 
+    if not os.path.isdir('./model_out'):
+        os.mkdir('./model_out')
+
     # Writes a graph proto
-    tf.train.write_graph(K.get_session().graph_def, logdir='model_out', name='graph.pbtxt')
+    tf.train.write_graph(K.get_session().graph_def, logdir='./model_out', name='graph.pbtxt')
 
     # Saves variables
-    tf.train.Saver().save(K.get_session(), save_path='model_out/checkpoint.chkp')
+    tf.train.Saver().save(K.get_session(), save_path='./model_out/checkpoint.chkp')
 
     # Converts all variables in a graph and checkpoint into constants
     # input_graph - GraphDef file to load
@@ -168,28 +177,27 @@ def export_model():
     # input_checkpoint - result of tf.train.Saver().save()
     # output_graph - where to write frozen GraphDef
     # clear_devices - a bool whether to remove device specifications
-    freeze_graph.freeze_graph(input_graph='model_out/graph.pbtxt', input_binary=False, input_checkpoint='model_out/checkpoint.chkp',
-                              output_node_names='dense_3/Softmax', output_graph='model_out/frozen_graph.pb', clear_devices=True)
+    freeze_graph.freeze_graph(input_graph='./model_out/graph.pbtxt', input_binary=False, input_checkpoint='./model_out/checkpoint.chkp',
+                              output_node_names='dense_3/Softmax', output_graph='./model_out/frozen_graph.pb', clear_devices=True)
 
     input_graph_def = tf.GraphDef()
-    with tf.gfile.Open('model_out/frozen_graph.pb', "rb") as f:
+    with tf.gfile.Open('./model_out/frozen_graph.pb', "rb") as f:
         input_graph_def.ParseFromString(f.read())
 
     # Returns an optimized version of the input graph
     output_graph_def = optimize_for_inference_lib.optimize_for_inference(input_graph_def, input_node_names=['conv2d_1_input'], output_node_names=['dense_3/Softmax'],
                                                                          placeholder_type_enum=tf.float32.as_datatype_enum)
     # SerializeToString() - serializes message and returns it as string
-    with tf.gfile.FastGFile('model_out/string_graph.pb', "wb") as f:
+    with tf.gfile.FastGFile('./model_out/string_graph.pb', "wb") as f:
         f.write(output_graph_def.SerializeToString())
 
     print("Graph saved!")
 
 if __name__ == '__main__':
-    num_classes = 10
-    epochs = 10
+    num_classes = 2
+    epochs = 100
 
     model, test_generator, hist_metric = train_cnn(num_classes, epochs)
-    model.summary()
 
     # Plotting training accuracy with validation
     plt.figure(figsize=(10, 6))
@@ -220,3 +228,5 @@ if __name__ == '__main__':
     export_model()
     print('Test loss:', score[0])
     print('Test accuracy:', score[1])
+
+    model.summary()
