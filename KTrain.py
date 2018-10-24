@@ -30,7 +30,6 @@ def get_data():
 
     train_datagen = ImageDataGenerator(rescale=1./255, horizontal_flip=True)
     validation_datagen = ImageDataGenerator(rescale=1./255, horizontal_flip=True)
-    test_datagen = ImageDataGenerator(rescale=1./255)
 
     # Default args from flow_from_directory:
     #   color_mode='rgb'
@@ -38,9 +37,8 @@ def get_data():
     #   class_mode='categorical'
     train_generator = train_datagen.flow_from_directory('./data/train', target_size=(256, 256), batch_size=32, class_mode='binary')
     validation_generator = validation_datagen.flow_from_directory('./data/validation', target_size=(256, 256), batch_size=32, class_mode='binary')
-    test_generator = test_datagen.flow_from_directory('./data/test', target_size=(256, 256), batch_size=1, class_mode=None, shuffle=False)
 
-    return train_generator, validation_generator, test_generator
+    return train_generator, validation_generator
 
 def get_model(num_classes):
     # Constructs the CNN model for training
@@ -112,7 +110,7 @@ def train_cnn(num_classes, epochs):
     #   verbose: detailed information of the training is displayed in the console if 1
     #   callbacks: variable tracking during training; takes a list as an argument
 
-    train_generator, validation_generator, test_generator = get_data()
+    train_generator, validation_generator = get_data()
     model = get_model(num_classes)
 
     # Model compilation
@@ -152,63 +150,11 @@ def train_cnn(num_classes, epochs):
             if input('Save model (Y/N)?').lower() == 'y':
                 model.save('./training_log/last_epoch_{}.hdf5'.format(str(epochs).zfill(4)))
                 print('Model saved./n')
-            return model, test_generator, hist_metric, epochs
+            return model, hist_metric, epochs
         elif train_more.lower() == 'n':
-            return model, test_generator, hist_metric, epochs
+            return model, hist_metric, epochs
         else:
             print('Invalid input./n')
-
-def get_layer_output(model, layer_index, x):
-    # Will return the output of a certain layer given a certain input
-    # Learning phase for testing is 0
-
-    get_output = K.function([model.layers[0].input, K.learning_phase()], [model.layers[layer_index].output])
-    layer_output = get_output([x, 0])[0]
-    return layer_output
-
-def get_activations(model, test_images):
-    # Displays activations of convolutional layers
-
-    if not os.path.isdir('./convolutional_activations'):
-        os.mkdir('./convolutional_activations')
-
-    for image_index in range(len(test_images)):
-        conv1_output = get_layer_output(model, 0, test_images)
-        conv2_output = get_layer_output(model, 4, test_images)
-        conv3_output = get_layer_output(model, 8, test_images)
-        conv4_output = get_layer_output(model, 11, test_images)
-        conv5_output = get_layer_output(model, 14, test_images)
-
-        filter1 = conv1_output[image_index]
-        filter2 = conv2_output[image_index]
-        filter3 = conv3_output[image_index]
-        filter4 = conv4_output[image_index]
-        filter5 = conv5_output[image_index]
-
-        filter_index = random.randint(0, len(conv1_output[0][0][0]))
-
-        plt.imshow(filter1[:,:,filter_index])
-        plt.savefig('./convolutional_activations/conv1_{}.jpg'.format(str(image_index).zfill(4)))
-        plt.close
-
-        plt.imshow(filter2[:,:,filter_index])
-        plt.savefig('./convolutional_activations/conv2_{}.jpg'.format(str(image_index).zfill(4)))
-        plt.close
-
-        plt.imshow(filter3[:,:,filter_index])
-        plt.savefig('./convolutional_activations/conv3_{}.jpg'.format(str(image_index).zfill(4)))
-        plt.close
-
-        plt.imshow(filter4[:,:,filter_index])
-        plt.savefig('./convolutional_activations/conv4_{}.jpg'.format(str(image_index).zfill(4)))
-        plt.close
-
-        plt.imshow(filter5[:,:,filter_index])
-        plt.savefig('./convolutional_activations/conv5_{}.jpg'.format(str(image_index).zfill(4)))
-        plt.close
-
-        if image_index == 30:
-            break
 
 def export_model():
     # Exporting Keras model to a Tensorflow model
@@ -248,8 +194,7 @@ if __name__ == '__main__':
     num_classes = 2
     epochs = 100
 
-    model, test_generator, hist_metric, new_epochs = train_cnn(num_classes, epochs)
-    test_images, test_labels = next(test_generator)
+    model, hist_metric, new_epochs = train_cnn(num_classes, epochs)
 
     # Plotting training accuracy with validation
     plt.figure(figsize=(10, 6))
@@ -272,14 +217,5 @@ if __name__ == '__main__':
     plt.legend(['loss', 'val_loss'], loc='upper right')
     plt.show()
 
-    test_generator.reset()
-    predictions = model.predict_generator(test_generator)
-    predictions = np.argmax(predictions, axis=1)
-
-    score = model.evaluate_generator(test_generator)
     export_model()
-    get_activations(model, test_images)
-    print('Test loss:', score[0])
-    print('Test accuracy:', score[1])
-
     model.summary()
