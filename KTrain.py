@@ -5,6 +5,7 @@
 import os
 import math
 import random
+import datetime
 import numpy as np
 import tensorflow as tf
 
@@ -104,7 +105,7 @@ def get_lr_metric(optimizer):
         return optimizer.lr
     return lr
 
-def train_cnn(num_classes, epochs):
+def train_cnn(num_classes, epochs, date):
     # Feeds the data to the model for training
     # Some model args:
     #   verbose: detailed information of the training is displayed in the console if 1
@@ -121,7 +122,7 @@ def train_cnn(num_classes, epochs):
     if not os.path.isdir('./training_log'):
         os.mkdir('./training_log')
 
-    callbacks = [CSVLogger('./training_log/history.csv'), ModelCheckpoint('./training_log/best_epoch_{}.hdf5'.format(str(epochs).zfill(4)), 'val_acc', verbose=1, save_best_only=True),
+    callbacks = [CSVLogger('./training_log/'+date+'/history_{}.csv'.format(str(epochs).zfill(4))), ModelCheckpoint('./training_log/'+date+'/best_epoch_{}.hdf5'.format(str(epochs).zfill(4)), 'val_acc', verbose=1, save_best_only=True),
                  ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=1, verbose=1, min_lr=0.00001)]
 
     print('Training initialized. Epoch: 0')
@@ -130,7 +131,7 @@ def train_cnn(num_classes, epochs):
     print('Training terminated. Epoch:', epochs)
 
     # Saving till last epoch performed
-    model.save('./training_log/last_epoch_{}.hdf5'.format(str(epochs).zfill(4)))
+    model.save('./training_log/'+date+'/last_epoch_{}.hdf5'.format(str(epochs).zfill(4)))
 
     # Loop and conditional statement to give a choice whether to continue training or not
     while True:
@@ -148,7 +149,7 @@ def train_cnn(num_classes, epochs):
             print('Training terminated. Epoch:', epochs+epoch_more)
 
             if input('Save model (Y/N)?').lower() == 'y':
-                model.save('./training_log/last_epoch_{}.hdf5'.format(str(epochs).zfill(4)))
+                model.save('./training_log/'+date+'/last_epoch_{}.hdf5'.format(str(epochs).zfill(4)))
                 print('Model saved./n')
             return model, hist_metric, epochs
         elif train_more.lower() == 'n':
@@ -163,10 +164,10 @@ def export_model():
         os.mkdir('./model_out')
 
     # Writes a graph proto
-    tf.train.write_graph(K.get_session().graph_def, logdir='./model_out', name='graph.pbtxt')
+    tf.train.write_graph(K.get_session().graph_def, logdir='./model_out/'+date+'/', name='graph.pbtxt')
 
     # Saves variables
-    tf.train.Saver().save(K.get_session(), save_path='./model_out/checkpoint.chkp')
+    tf.train.Saver().save(K.get_session(), save_path='./model_out/'+date+'/checkpoint.chkp')
 
     # Converts all variables in a graph and checkpoint into constants
     # input_graph - GraphDef file to load
@@ -174,18 +175,18 @@ def export_model():
     # input_checkpoint - result of tf.train.Saver().save()
     # output_graph - where to write frozen GraphDef
     # clear_devices - a bool whether to remove device specifications
-    freeze_graph.freeze_graph(input_graph='./model_out/graph.pbtxt', input_binary=False, input_checkpoint='./model_out/checkpoint.chkp',
-                              output_node_names='dense_3/Softmax', output_graph='./model_out/frozen_graph.pb', clear_devices=True)
+    freeze_graph.freeze_graph(input_graph='./model_out/'+date+'/graph.pbtxt', input_binary=False, input_checkpoint='./model_out/'+date+'/checkpoint.chkp',
+                              output_node_names='dense_3/Softmax', output_graph='./model_out/'+date+'/frozen_graph.pb', clear_devices=True)
 
     input_graph_def = tf.GraphDef()
-    with tf.gfile.Open('./model_out/frozen_graph.pb', "rb") as f:
+    with tf.gfile.Open('./model_out/'+date+'/frozen_graph.pb', "rb") as f:
         input_graph_def.ParseFromString(f.read())
 
     # Returns an optimized version of the input graph
     output_graph_def = optimize_for_inference_lib.optimize_for_inference(input_graph_def, input_node_names=['conv2d_1_input'], output_node_names=['dense_3/Softmax'],
                                                                          placeholder_type_enum=tf.float32.as_datatype_enum)
     # SerializeToString() - serializes message and returns it as string
-    with tf.gfile.FastGFile('./model_out/string_graph.pb', "wb") as f:
+    with tf.gfile.FastGFile('./model_out/'+date+'/string_graph.pb', "wb") as f:
         f.write(output_graph_def.SerializeToString())
 
     print("Graph saved!")
@@ -194,7 +195,8 @@ if __name__ == '__main__':
     num_classes = 2
     epochs = 100
 
-    model, hist_metric, new_epochs = train_cnn(num_classes, epochs)
+    date = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M")
+    model, hist_metric, new_epochs = train_cnn(num_classes, epochs, date)
 
     # Plotting training accuracy with validation
     plt.figure(figsize=(10, 6))
