@@ -78,4 +78,4 @@ def cut_and_scale(output_size):
         cv2.imwrite(image_name, resized_image)
         os.remove('./data/' + str(folder_names[1]) + '/' + file)
 
-cut_and_scale(224)
+cut_and_scale(128)
