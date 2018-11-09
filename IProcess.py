@@ -18,8 +18,8 @@ def file_names():
 
     return filenames_one, filenames_two, folder_names
 
-def cut_and_scale():
-    # Cuts images to squares (center squares) and resizes them to 256x256 pixels
+def cut_and_scale(output_size):
+    # Cuts images to squares (center squares) and resizes them to (output_size, output_size) pixels
     filenames_one, filenames_two, folder_names = file_names()
 
     file_number = 1
@@ -44,7 +44,7 @@ def cut_and_scale():
 
         new_image[0:min_size+1, 0:min_size+1] = image[topmost:bottomost, leftmost:rightmost+1]
 
-        resized_image = cv2.resize(new_image, (256,256))
+        resized_image = cv2.resize(new_image, (output_size,output_size))
         image_name = './data/' + str(folder_names[0]) + '/' + str(file_number).zfill(4) + '_out.jpg'
         file_number += 1
         cv2.imwrite(image_name, resized_image)
@@ -72,10 +72,10 @@ def cut_and_scale():
 
         new_image[0:min_size+1, 0:min_size+1] = image[topmost:bottomost, leftmost:rightmost+1]
 
-        resized_image = cv2.resize(new_image, (256,256))
+        resized_image = cv2.resize(new_image, (output_size,output_size))
         image_name = './data/' + str(folder_names[1]) + '/' + str(file_number).zfill(4) + '_out.jpg'
         file_number += 1
         cv2.imwrite(image_name, resized_image)
         os.remove('./data/' + str(folder_names[1]) + '/' + file)
 
-cut_and_scale()
+cut_and_scale(224)
