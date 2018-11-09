@@ -217,7 +217,7 @@ def export_model():
 
 if __name__ == '__main__':
     num_classes = 2
-    epochs = 1000
+    epochs = 250
 
     date = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M")
     model, hist_metric = train_cnn(num_classes, epochs, date)
