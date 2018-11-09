@@ -1,4 +1,4 @@
-# Code based on:
+at # Code based on:
 # https://github.com/adventuresinML/adventures-in-ml-code/blob/master/keras_cnn.py, retrieved on 8/23/2018
 # https://stackoverflow.com/questions/48198031/keras-add-variables-to-progress-bar/48206009#48206009, retrieved on 8/25/2018
 # https://github.com/OmarAflak/Keras-Android-XOR/blob/master/keras/index.py, retrieved on 8/30/2018
@@ -31,7 +31,6 @@ def get_data():
     # Current directory is starting point of file search
 
     train_datagen = ImageDataGenerator(rescale=1./255, horizontal_flip=True, rotation_range=40, zoom_range=0.2)
-
     validation_datagen = ImageDataGenerator(rescale=1./255, horizontal_flip=True, rotation_range=40, zoom_range=0.2)
 
     # Default args from flow_from_directory:
@@ -43,8 +42,8 @@ def get_data():
     os.mkdir('./results/'+date+'/augmented')
     os.mkdir(train_augmented)
     os.mkdir(validation_augmented)
-    train_generator = train_datagen.flow_from_directory('./data/train', target_size=(128, 128), batch_size=16, save_to_dir=train_augmented, class_mode='categorical')
-    validation_generator = validation_datagen.flow_from_directory('./data/validation', target_size=(128, 128), batch_size=16, save_to_dir=validation_augmented, class_mode='categorical')
+    train_generator = train_datagen.flow_from_directory('./data/train', target_size=(128, 128), batch_size=32, save_to_dir=train_augmented, class_mode='categorical')
+    validation_generator = validation_datagen.flow_from_directory('./data/validation', target_size=(128, 128), batch_size=32, save_to_dir=validation_augmented, class_mode='categorical')
 
     return train_generator, validation_generator
 
@@ -118,7 +117,6 @@ def train_cnn(num_classes, epochs, date):
     os.mkdir('./results/'+date+'/')
     os.mkdir('./results/'+date+'/training_log/')
 
-    batch_size = 16
     train_generator, validation_generator = get_data()
     model = get_model(num_classes)
 
