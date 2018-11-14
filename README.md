@@ -3,6 +3,10 @@ CNN Image Classification using Keras with TF backend (5 convolutional, 3 fully-c
 
 IProcess.py: If acquired input image is rectangular, this python code gets the center square of that image and rewrites the file.
 
-KTrain.py: Given a 'data' folder in the same directory, having divided training ('train'), validation ('validation'), and testing ('test') data, it trains the CNN model with an initial 100 epochs then saves and exports model if no further epochs are run.
+IDivide.py: Divides the data to train and validation sets.
 
-KTest.py: Tests the model trained by KTrain.py. Model path must point to saved pb file.
+KTrain.py: Given a 'data' folder in the same directory, having divided training ('train') and validation ('validation'), it trains the CNN model with 200 epochs then saves and exports model.
+
+ITest.py: Does the same thing as IProcess.py, but for the test folder.
+
+KTest.py: Tests the model trained by KTrain.py. Model path must point to saved hdf5 file.
