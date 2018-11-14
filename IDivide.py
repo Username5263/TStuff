@@ -21,10 +21,10 @@ def divide_data():
     # Divides the images to train, validation, and test folders
     filenames_one, filenames_two, folder_names = file_names()
 
-    train_one = int(len(filenames_one) * 0.85)
+    train_one = int(len(filenames_one) * 0.80)
     validation_one = len(filenames_one) - train_one
 
-    train_two = int(len(filenames_two) * 0.85)
+    train_two = int(len(filenames_two) * 0.80)
     validation_two = len(filenames_two) - train_two
 
     if not os.path.isdir('./data/train'):

@@ -2,7 +2,6 @@
 # https://github.com/adventuresinML/adventures-in-ml-code/blob/master/keras_cnn.py, retrieved on 8/23/2018
 # https://stackoverflow.com/questions/48198031/keras-add-variables-to-progress-bar/48206009#48206009, retrieved on 8/25/2018
 # https://github.com/OmarAflak/Keras-Android-XOR/blob/master/keras/index.py, retrieved on 8/30/2018
-# https://keras.io/
 
 import os
 import math
@@ -31,7 +30,7 @@ def get_data():
     # Current directory is starting point of file search
 
     train_datagen = ImageDataGenerator(rescale=1./255, horizontal_flip=True, rotation_range=40, zoom_range=0.2)
-    validation_datagen = ImageDataGenerator(rescale=1./255, horizontal_flip=True, rotation_range=40, zoom_range=0.2)
+    validation_datagen = ImageDataGenerator(rescale=1./255)
 
     # Default args from flow_from_directory:
     #   color_mode='rgb'
@@ -128,7 +127,7 @@ def train_cnn(num_classes, epochs, date):
     model.compile(loss=losses.categorical_crossentropy, optimizer=sgd, metrics=['accuracy'])
 
     callbacks = [CSVLogger('./results/'+date+'/training_log/history.csv', append=True),
-                 ModelCheckpoint('./results/'+date+'/training_log/best_epoch.hdf5', 'val_acc', verbose=1, save_best_only=True),
+                 ModelCheckpoint('./results/'+date+'/training_log/best_epoch.hdf5', 'val_loss', verbose=1, save_best_only=True),
                  ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=5, verbose=1, min_lr=0.00001)]
 
     print('Training initialized. Epoch: 0')
@@ -143,32 +142,32 @@ def train_cnn(num_classes, epochs, date):
 
 def acc_loss_graph(hist_metric, epochs):
     # Plotting training accuracy with validation
-    min_acc = min(min(hist_metric.history['acc']), min(hist_metric.history['val_acc']))
+    # min_acc = min(min(hist_metric.history['acc']), min(hist_metric.history['val_acc']))
     plt.figure()
     plt.plot(hist_metric.history['acc'])
     plt.plot(hist_metric.history['val_acc'])
-    plt.xticks(range(0,epochs,25))
-    plt.yticks(np.arange(round(min_acc,1)-0.1,1,0.1))
-    plt.title('Training and Validation Accuracy')
-    plt.ylabel('accuracy')
-    plt.xlabel('epoch')
-    plt.legend(['acc', 'val_acc'], loc='lower right')
+    # plt.xticks(range(0,epochs,20))
+    # plt.yticks(np.arange(round(min_acc,1)-0.1,1,0.1))
+    # plt.title('Training and Validation Accuracy')
+    plt.ylabel('Accuracy')
+    plt.xlabel('Epoch')
+    plt.legend(['Training Accuracy', 'Validation Accuracy'], loc='lower right')
     plt.savefig('./results/'+date+'/model_out/accuracy.png')
     plt.close()
     print('Accuracy graph saved.')
 
     # Plotting training loss with validation
-    min_loss = min(min(hist_metric.history['loss']), min(hist_metric.history['val_loss']))
-    max_loss = max(max(hist_metric.history['loss']), max(hist_metric.history['val_loss']))
+    # min_loss = min(min(hist_metric.history['loss']), min(hist_metric.history['val_loss']))
+    # max_loss = max(max(hist_metric.history['loss']), max(hist_metric.history['val_loss']))
     plt.figure()
     plt.plot(hist_metric.history['loss'])
     plt.plot(hist_metric.history['val_loss'])
-    plt.xticks(range(0,epochs,25))
-    plt.yticks(np.arange(int(min_loss)-0.5, np.ceil(max_loss)+0.5,0.5))
-    plt.title('Training and Validation Loss')
-    plt.ylabel('loss')
-    plt.xlabel('epoch')
-    plt.legend(['loss', 'val_loss'], loc='upper right')
+    # plt.xticks(range(0,epochs,20))
+    # plt.yticks(np.arange(int(min_loss)-0.5, np.ceil(max_loss)+0.5,0.5))
+    # plt.title('Training and Validation Loss')
+    plt.ylabel('Loss')
+    plt.xlabel('Epoch')
+    plt.legend(['Training Loss', 'Validation Loss'], loc='upper right')
     plt.savefig('./results/'+date+'/model_out/loss.png')
     plt.close()
     print('Loss graph saved.')
@@ -217,7 +216,7 @@ def export_model():
 
 if __name__ == '__main__':
     num_classes = 2
-    epochs = 250
+    epochs = 200
 
     date = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M")
     model, hist_metric = train_cnn(num_classes, epochs, date)
