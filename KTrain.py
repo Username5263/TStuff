@@ -142,13 +142,10 @@ def train_cnn(num_classes, epochs, date):
 
 def acc_loss_graph(hist_metric, epochs):
     # Plotting training accuracy with validation
-    # min_acc = min(min(hist_metric.history['acc']), min(hist_metric.history['val_acc']))
+    
     plt.figure()
     plt.plot(hist_metric.history['acc'])
     plt.plot(hist_metric.history['val_acc'])
-    # plt.xticks(range(0,epochs,20))
-    # plt.yticks(np.arange(round(min_acc,1)-0.1,1,0.1))
-    # plt.title('Training and Validation Accuracy')
     plt.ylabel('Accuracy')
     plt.xlabel('Epoch')
     plt.legend(['Training Accuracy', 'Validation Accuracy'], loc='lower right')
@@ -157,14 +154,9 @@ def acc_loss_graph(hist_metric, epochs):
     print('Accuracy graph saved.')
 
     # Plotting training loss with validation
-    # min_loss = min(min(hist_metric.history['loss']), min(hist_metric.history['val_loss']))
-    # max_loss = max(max(hist_metric.history['loss']), max(hist_metric.history['val_loss']))
     plt.figure()
     plt.plot(hist_metric.history['loss'])
     plt.plot(hist_metric.history['val_loss'])
-    # plt.xticks(range(0,epochs,20))
-    # plt.yticks(np.arange(int(min_loss)-0.5, np.ceil(max_loss)+0.5,0.5))
-    # plt.title('Training and Validation Loss')
     plt.ylabel('Loss')
     plt.xlabel('Epoch')
     plt.legend(['Training Loss', 'Validation Loss'], loc='upper right')
