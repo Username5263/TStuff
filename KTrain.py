@@ -120,7 +120,6 @@ def train_cnn(num_classes, epochs, date):
     model = get_model(num_classes)
 
     model.summary()
-    # print(model.output.op.name)
 
     # Model compilation
     sgd = optimizers.SGD(lr=0.01, momentum=0.9)
@@ -131,7 +130,6 @@ def train_cnn(num_classes, epochs, date):
                  ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=5, verbose=1, min_lr=0.00001)]
 
     print('Training initialized. Epoch: 0')
-    # model.fit_generator(train_generator, samples_per_epoch=int(len(train_generator)/batch_size), epochs=epochs, verbose=1, validation_data=validation_generator, validation_steps=int(len(validation_generator)/batch_size), callbacks=callbacks)
     hist_metric = model.fit_generator(train_generator, epochs=epochs, verbose=1, validation_data=validation_generator, callbacks=callbacks)
     print('Training terminated. Epoch:', epochs)
 
@@ -142,7 +140,6 @@ def train_cnn(num_classes, epochs, date):
 
 def acc_loss_graph(hist_metric, epochs):
     # Plotting training accuracy with validation
-    
     plt.figure()
     plt.plot(hist_metric.history['acc'])
     plt.plot(hist_metric.history['val_acc'])
@@ -181,6 +178,8 @@ def export_model():
 
     # Saves variables
     tf.train.Saver().save(K.get_session(), save_path='./results/'+date+'/model_out/checkpoint.chkp')
+
+    # Convert/checkpoint.chkp')
 
     # Converts all variables in a graph and checkpoint into constants
     # input_graph - GraphDef file to load
