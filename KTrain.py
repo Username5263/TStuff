@@ -179,8 +179,6 @@ def export_model():
     # Saves variables
     tf.train.Saver().save(K.get_session(), save_path='./results/'+date+'/model_out/checkpoint.chkp')
 
-    # Convert/checkpoint.chkp')
-
     # Converts all variables in a graph and checkpoint into constants
     # input_graph - GraphDef file to load
     # input_binary=False indicates .pbtxt
@@ -191,17 +189,6 @@ def export_model():
                               input_checkpoint='./results/'+date+'/model_out/checkpoint.chkp', output_node_names=output_node_names,
                               restore_op_name='save/restore_all', filename_tensor_name='save/Const:0',
                               output_graph='./results/'+date+'/model_out/frozen_graph.pb', clear_devices=True, initializer_nodes='')
-
-    # input_graph_def = tf.GraphDef()
-    # with tf.gfile.Open('./results/'+date+'/model_out/frozen_graph.pb', "rb") as f:
-    #     input_graph_def.ParseFromString(f.read())
-    #
-    # # Returns an optimized version of the input graph
-    # output_graph_def = optimize_for_inference_lib.optimize_for_inference(input_graph_def, input_node_names=[input_node_names], output_node_names=[output_node_names],
-    #                                                                      placeholder_type_enum=tf.float32.as_datatype_enum)
-    # # SerializeToString() - serializes message and returns it as string
-    # with tf.gfile.FastGFile('./results/'+date+'/model_out/string_graph.pb', "wb") as f:
-    #     f.write(output_graph_def.SerializeToString())
 
     print('Graph saved!')
 
